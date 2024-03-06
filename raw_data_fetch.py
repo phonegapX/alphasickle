@@ -155,8 +155,8 @@ class RawDataFetcher(FactorGenerater):
             del dat['Unnamed: 0']
             panel[d] = dat
             print(d)
-        datpanel = pd.Panel(panel)
-        datpanel = datpanel.to_frame().stack().unstack(level=(0,1)) #貌似某些情况下会有BUG,有索引但是没数据
+        datpanel = pd.concat(panel, axis=0)
+        datpanel = datpanel.stack().unstack(level=(1, -1))
         #开始计算结果指标(月频),在每个时间截面逐个处理每只股票
         df = pd.DataFrame(index=all_stocks_info.index, columns=mdays)
         for d in df.columns: #每月最后一天
@@ -191,6 +191,7 @@ class RawDataFetcher(FactorGenerater):
             del dat['Unnamed: 0']
             panel[d] = dat
             print(d)
+        # no access to wind, no way to test, thus not changed.
         datpanel = pd.Panel(panel)
         datpanel = datpanel.swapaxes(0, 1)
         #开始计算结果指标(月频),在每个时间截面逐个处理每只股票
@@ -655,8 +656,8 @@ class TushareFetcher(RawDataFetcher):
         ''' 每月第一个和最后一个交易日映射
         '''
         tdays = self.tradedays
-        months_start = tdays[0:1] + list(after_d for before_d, after_d in zip(tdays[:-1], tdays[1:]) if before_d.month != after_d.month)
-        months_end = list(before_d for before_d, after_d in zip(tdays[:-1], tdays[1:]) if before_d.month != after_d.month) + tdays[-1:]
+        months_end = tdays[0:1] + list(after_d for before_d, after_d in zip(tdays[:-1], tdays[1:]) if before_d.month != after_d.month)
+        months_start = list(before_d for before_d, after_d in zip(tdays[:-1], tdays[1:]) if before_d.month != after_d.month) + tdays[-1:]
         if latest_month_end_tradeday is None:
             latest_month_end_tradeday = self.month_map.index[-1]
         if months_end[-1] > latest_month_end_tradeday:
@@ -929,9 +930,8 @@ class TushareFetcher(RawDataFetcher):
             del dat['Unnamed: 0']
             panel[d] = dat
             print(d)
-        panel = pd.Panel(panel)
-        panel = panel.to_frame()
-        panel = panel.stack().unstack(level=(0,1))
+        panel = pd.concat(panel, axis=0)
+        panel = panel.stack().unstack(level=(1, -1))
         #-------------------------------------------------------
         #开始计算结果指标(月频)
         df_result = pd.DataFrame(index=all_stocks_info.index, columns=new_caldays)
@@ -1001,8 +1001,8 @@ class TushareFetcher(RawDataFetcher):
             del dat['Unnamed: 0']
             panel[d] = dat
             print(d)
-        panel = pd.Panel(panel)
-        panel = panel.to_frame()
+        panel = pd.concat(panel, axis=0)
+        panel = panel.stack().unstack(level=(1, -1))
         '''
                                              2009-03-31           2009-06-30           2009-09-30           2009-12-31           2010-03-31           2010-06-30           2010-09-30           2010-12-31           2011-03-31           2011-06-30           2011-09-30           2011-12-31           2012-03-31           2012-06-30           2012-09-30           2012-12-31           2013-03-31           2013-06-30           2013-09-30           2013-12-31           2014-03-31           2014-06-30           2014-09-30           2014-12-31           2015-03-31           2015-06-30           2015-09-30           2015-12-31           2016-03-31           2016-06-30           2016-09-30           2016-12-31           2017-03-31           2017-06-30           2017-09-30           2017-12-31           2018-03-31           2018-06-30           2018-09-30           2018-12-31           2019-03-31           2019-06-30           2019-09-30           2019-12-31
 major     minor                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
