@@ -198,9 +198,7 @@ def test_yearly(factors=None, start_year=2012, end_year=2019):
         df.to_csv(os.path.join(sf_test_save_path, save_name+'.csv'), encoding='gbk')
 
     #存储检验结果表格
-    test_result = pd.Panel(test_result)
-    test_result = test_result.swapaxes(2, 0)
-    test_result = test_result.swapaxes(1, 2)
+    test_result = pd.concat(test_result)
     test_result.to_excel(os.path.join(sf_test_save_path, 'T检验&IC检验结果.xlsx'), encoding='gbk')
 
     #绘制单因子检验图，并进行存储
@@ -676,8 +674,8 @@ class SingleFactorLayerDivisionBacktest:
         dates = self.factor_data.columns
         stk_weights = [self.get_stock_weight_by_group(self.factor_data[date], equal_weight) for date in dates]
         result = {date: stk_weight for date, stk_weight in zip(dates, stk_weights)}
-        result = pd.Panel.from_dict(result)
-        result = [result.minor_xs(group) for group in result.minor_axis]
+        result = pd.concat(result)
+        result = [result[col].unstack(level=0) for col in result.columns]
         return result
 
     def get_stock_weight_by_group(self, factor, equal_weight=False):
@@ -749,8 +747,7 @@ def panel_to_matrix(factors, factor_path=factor_path, save_path=sf_test_save_pat
         date = pd.to_datetime(f.split('.')[0])
         datpanel[date] = datdf[factors]
 
-    datpanel = pd.Panel(datpanel)
-    datpanel = datpanel.swapaxes(0, 2)
+    datpanel = pd.concat(datpanel)
     for factor in datpanel.items:
         dat = datpanel.loc[factor]
         save_name = factor.replace('/', '_div_') if '/' in factor else factor
